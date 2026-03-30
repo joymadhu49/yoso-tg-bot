@@ -6,6 +6,7 @@ dist/
 *.db-shm
 *.log
 .DS_Store
+.encryption_key
 SPEC.md
 FIXES.md
 engine-ref-*.ts

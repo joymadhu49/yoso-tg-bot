@@ -1,11 +1,24 @@
 import { createCipheriv, createDecipheriv, randomBytes, createHash } from 'crypto';
+import { existsSync, readFileSync, writeFileSync } from 'fs';
+import { join } from 'path';
 
 const ALGORITHM = 'aes-256-gcm';
 
 function getKey(): Buffer {
-  const raw = process.env.BOT_ENCRYPTION_KEY;
-  if (!raw) throw new Error('BOT_ENCRYPTION_KEY env var required');
-  // Derive a 32-byte key from the secret using SHA-256
+  let raw = process.env.BOT_ENCRYPTION_KEY;
+
+  if (!raw) {
+    // Auto-generate and persist to .encryption_key
+    const keyFile = join(process.cwd(), '.encryption_key');
+    if (existsSync(keyFile)) {
+      raw = readFileSync(keyFile, 'utf-8').trim();
+    } else {
+      raw = randomBytes(32).toString('hex');
+      writeFileSync(keyFile, raw, { mode: 0o600 });
+      console.log('🔑 Auto-generated encryption key (saved to .encryption_key)');
+    }
+  }
+
   return createHash('sha256').update(raw).digest();
 }
 
